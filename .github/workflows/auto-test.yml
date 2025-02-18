@@ -39,6 +39,30 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
+          if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+            git fetch --unshallow
+          else
+            git fetch origin $GITHUB_BASE_REF
+          fi
+
+          # Determine the common base commit
+          BASE_COMMIT=$(git merge-base HEAD origin/$GITHUB_BASE_REF)
+
+          # Generate the diff file
+          git diff $BASE_COMMIT...HEAD > diff.patch
+
+          # Debugging: Print file list
+          echo "Listing all files in the current directory:"
+          ls -l
+
+          # Check if `diff.patch` exists and is non-empty
+          if [[ ! -s diff.patch ]]; then
+            echo "No changes detected in the PR or diff.patch not created."
+            exit 0
+          fi
+
+           echo "Patch file created successfully."
+           
            while IFS= read -r file; do
             if [[ "$file" == *.go ]]; then
               echo "Processing: $file"
