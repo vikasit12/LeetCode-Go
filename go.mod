@@ -17,6 +17,7 @@ require (
 	github.com/halfrost/LeetCode-Go/structures v0.0.0-20220910233101-aa0e2c897b18
 	github.com/halfrost/LeetCode-Go/template v0.0.0-20220910233504-e2a72e6212ce
 	github.com/mozillazg/request v0.8.0
+	github.com/sashabaranov/go-openai v1.37.0
 	github.com/spf13/cobra v1.5.0
 )
 
