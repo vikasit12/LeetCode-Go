@@ -36,25 +36,30 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          while IFS= read -r file; do
+           while IFS= read -r file; do
             if [[ "$file" == *.go ]]; then
               echo "Processing: $file"
-              cd "$(dirname "$file")"  # Change to the file's directory
 
-              # Run the extraction script
-              MODIFIED_FUNCTIONS=$(go run ./../scripts/extract_functions_gpt.go "$(basename "$file")")
+              ABS_FILE_PATH="$(pwd)/$file"
+
+              # Build the extraction script once
+              go build -o scripts/extract_functions scripts/extract_functions_gpt.go
+              MODIFIED_FUNCTIONS=$(scripts/extract_functions "$ABS_FILE_PATH")
               echo "Modified functions: $MODIFIED_FUNCTIONS"
 
               for func in $MODIFIED_FUNCTIONS; do
-                FUNCTION_CODE=$(awk "/func $func/,/^}/" "$(basename "$file")") # Extract function code
-                go run ./../scripts/generate_tests_gpt.go "$func" "$FUNCTION_CODE"
+                FUNCTION_CODE=$(awk "/func $func/,/^}/" "$ABS_FILE_PATH")
+
+                # Build the test generation script once
+                go build -o scripts/generate_tests scripts/generate_tests_gpt.go
+                scripts/generate_tests "$func" "$FUNCTION_CODE"
               done
 
-              cd -  # Go back to original directory
             else
               echo "Skipping non-Go file: $file"
             fi
-          done < changed_files.txt
+            done < changed_files.txt
+
 
       - name: Commit and Push New Tests
         run: |
