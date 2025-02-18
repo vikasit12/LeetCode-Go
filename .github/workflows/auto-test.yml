@@ -28,7 +28,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Fetching PR changes..."
-          gh pr diff --name-only ${{ github.event.pull_request.number }} > changed_files.txt
+          git fetch --unshallow
+          git fetch origin $GITHUB_BASE_REF
+          BASE_COMMIT=$(git merge-base HEAD origin/$GITHUB_BASE_REF)
+          git diff --name-only $BASE_COMMIT...HEAD > changed_files.txt
           echo "Modified files:"
           cat changed_files.txt
 
