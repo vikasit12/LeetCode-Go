@@ -42,12 +42,12 @@ jobs:
               cd "$(dirname "$file")"  # Change to the file's directory
 
               # Run the extraction script
-              MODIFIED_FUNCTIONS=$(go run ../../scripts/extract_functions_gpt.go "$(basename "$file")")
+              MODIFIED_FUNCTIONS=$(go run ./../scripts/extract_functions_gpt.go "$(basename "$file")")
               echo "Modified functions: $MODIFIED_FUNCTIONS"
 
               for func in $MODIFIED_FUNCTIONS; do
                 FUNCTION_CODE=$(awk "/func $func/,/^}/" "$(basename "$file")") # Extract function code
-                go run ../../scripts/generate_tests_gpt.go "$func" "$FUNCTION_CODE"
+                go run ./../scripts/generate_tests_gpt.go "$func" "$FUNCTION_CODE"
               done
 
               cd -  # Go back to original directory
