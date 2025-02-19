@@ -162,7 +162,7 @@ Return only the Go code inside a code block. Use a table-driven test format.`, c
 		generatedTests = append(generatedTests, resp.Choices[0].Message.Content)
 		count++
 	}
-	log.Printf("generated tests: %v",generatedTests)
+	log.Printf("generated tests: %v", generatedTests)
 	return strings.Join(generatedTests, "\n\n")
 }
 func main() {
@@ -188,9 +188,20 @@ func main() {
 	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 	testCode := generateTests(client, diffFunc)
 	testFile := fmt.Sprintf("%s_test.go", "Checking")
-	err = os.WriteFile(testFile, []byte(testCode), 0644)
+	file, err := os.Create(testFile)
+	if err != nil {
+		log.Fatalf("Error creating test file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(testCode)
 	if err != nil {
 		log.Fatalf("Error writing test file: %v", err)
+	}
+
+	err = file.Sync() // Ensure the data is flushed to disk
+	if err != nil {
+		log.Fatalf("Error syncing test file: %v", err)
 	}
 
 	fmt.Println("Generated test case for:", diffFunc)
