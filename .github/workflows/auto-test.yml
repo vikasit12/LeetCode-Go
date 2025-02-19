@@ -80,6 +80,10 @@ jobs:
 
       - name: Commit and Push New Tests
         run: |
+          rm changed_files.txt
+          rm diff.patch
+          rm scripts/extract_functions
+
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add .
