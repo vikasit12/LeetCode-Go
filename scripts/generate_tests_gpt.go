@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -13,6 +14,12 @@ import (
 func generateTestCases(functionName, functionCode string) string {
 	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
+	// Ensure the function name is valid before calling GPT-4
+	if functionName == "" || strings.Contains(functionName, " ") {
+		fmt.Printf("Skipping invalid function name: %s\n", functionName)
+		return ""
+	}
+
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
@@ -20,11 +27,11 @@ func generateTestCases(functionName, functionCode string) string {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    "system",
-					Content: "You are a Golang expert. Generate a high-quality unit test for the given function, ensuring coverage of edge cases and using appropriate mocks where necessary.",
+					Content: "You are a Golang expert. Generate a unit test for the given function, ensuring coverage of edge cases and using appropriate mocks where necessary.",
 				},
 				{
 					Role:    "user",
-					Content: fmt.Sprintf("Generate a unit test for this function:\n\n%s", functionCode),
+					Content: fmt.Sprintf("Generate a unit test for this function: %s", functionCode),
 				},
 			},
 		},
@@ -40,7 +47,18 @@ func main() {
 	functionName := os.Args[1]
 	functionCode := os.Args[2] // Extracted function code
 
+	// Skip processing if function name is invalid
+	if functionName == "" || strings.Contains(functionName, " ") {
+		fmt.Printf("Skipping test generation for invalid function name: %s\n", functionName)
+		return
+	}
+
 	testCode := generateTestCases(functionName, functionCode)
+
+	if testCode == "" {
+		fmt.Printf("No valid test case generated for function: %s\n", functionName)
+		return
+	}
 
 	testFile := fmt.Sprintf("%s_test.go", functionName)
 	err := os.WriteFile(testFile, []byte(testCode), 0644)

@@ -5,44 +5,41 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
 )
 
-// Limit function code to avoid exceeding GPT-4 token limit
-func limitFunctionCode(code string) string {
-	lines := strings.Split(code, "\n")
-	if len(lines) > 50 {
-		lines = lines[:50] // Keep only first 50 lines
-		lines = append(lines, "// Function truncated to reduce token usage...")
-	}
-	return strings.Join(lines, "\n")
-}
-
-// Extract modified function names only
+// Extract function names from a Git diff
 func extractModifiedFunctionNames(diffContent string) []string {
 	var modifiedFunctions []string
 	lines := strings.Split(diffContent, "\n")
 
+	// Regex to match function declarations in Go
+	funcRegex := regexp.MustCompile(`^\+?\s*func\s+([a-zA-Z0-9_]+)\(`)
+
 	for _, line := range lines {
-		if strings.HasPrefix(line, "+func ") || strings.HasPrefix(line, "-func ") {
-			// Extract function name
-			parts := strings.Fields(line)
-			if len(parts) > 1 {
-				functionName := strings.TrimSuffix(parts[1], "(") // Remove '(' from function signature
-				modifiedFunctions = append(modifiedFunctions, functionName)
-			}
+		matches := funcRegex.FindStringSubmatch(line)
+		if len(matches) > 1 {
+			functionName := matches[1]
+			modifiedFunctions = append(modifiedFunctions, functionName)
 		}
 	}
+
 	return modifiedFunctions
 }
 
-// Call GPT-4 for PR analysis but only using function names, NOT full diff
+// Call GPT-4 with only function names, not full diff
 func getGPT4Analysis(functionNames []string) string {
+	if len(functionNames) == 0 {
+		fmt.Println("No valid function names extracted. Skipping GPT-4 analysis.")
+		return ""
+	}
+
 	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
-	// Join function names into a single message to avoid excessive tokens
+	// Join function names into a single message
 	functionList := strings.Join(functionNames, ", ")
 
 	resp, err := client.CreateChatCompletion(
@@ -52,11 +49,11 @@ func getGPT4Analysis(functionNames []string) string {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    "system",
-					Content: "You are a Golang expert. Analyze the following modified functions and identify which need new unit tests.",
+					Content: "You are a Golang expert. Identify which of the following modified functions require new unit tests.",
 				},
 				{
 					Role:    "user",
-					Content: fmt.Sprintf("Modified functions in PR: %s", functionList),
+					Content: fmt.Sprintf("Modified functions: %s", functionList),
 				},
 			},
 		},
@@ -77,7 +74,7 @@ func main() {
 	}
 	diffContent := string(diffContentBytes)
 
-	// Extract function names instead of full diff
+	// Extract function names from the diff
 	modifiedFunctions := extractModifiedFunctionNames(diffContent)
 
 	// If no functions are found, exit early
