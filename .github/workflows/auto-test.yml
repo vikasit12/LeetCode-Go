@@ -76,7 +76,7 @@ jobs:
 
               for func in $MODIFIED_FUNCTIONS; do
                 FUNCTION_CODE=$(awk "/func $func/,/^}/" "$ABS_FILE_PATH")
-
+                echo "File: $file , func: $func"
                 # Build the test generation script once
                 go build -o scripts/generate_tests scripts/generate_tests_gpt.go
                 scripts/generate_tests "$func" "$FUNCTION_CODE"
