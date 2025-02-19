@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"go/parser"
-	"go/token"
-	"go/ast"
 	"log"
 	"os"
 	"strings"
