@@ -45,17 +45,16 @@ jobs:
             git fetch origin $GITHUB_BASE_REF
           fi
 
-          # Determine the common base commit
+
           BASE_COMMIT=$(git merge-base HEAD origin/$GITHUB_BASE_REF)
 
-          # Generate the diff file
+         
           git diff $BASE_COMMIT...HEAD > diff.patch
 
-          # Debugging: Print file list
+ 
           echo "Listing all files in the current directory:"
           ls -l
-
-          # Check if `diff.patch` exists and is non-empty
+         
           if [[ ! -s diff.patch ]]; then
             echo "No changes detected in the PR or diff.patch not created."
             exit 0
@@ -68,19 +67,10 @@ jobs:
               echo "Processing: $file"
 
               ABS_FILE_PATH="$(pwd)/$file"
-
-              # Build the extraction script once
+              echo "File: $file"
+              
               go build -o scripts/extract_functions scripts/extract_functions_gpt.go
               MODIFIED_FUNCTIONS=$(scripts/extract_functions "$ABS_FILE_PATH")
-              echo "Modified functions: $MODIFIED_FUNCTIONS"
-
-              for func in $MODIFIED_FUNCTIONS; do
-                FUNCTION_CODE=$(awk "/func $func/,/^}/" "$ABS_FILE_PATH")
-                echo "File: $file , func: $func"
-                # Build the test generation script once
-                go build -o scripts/generate_tests scripts/generate_tests_gpt.go
-                scripts/generate_tests "$func" "$FUNCTION_CODE"
-              done
 
             else
               echo "Skipping non-Go file: $file"
