@@ -3,18 +3,24 @@ package main
 import (
 	"context"
 	"fmt"
+	"go/ast"
 	"go/parser"
 	"go/token"
-	"go/ast"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
 )
 
 // Extract modified functions using Go AST
 func extractModifiedFunctions(filePath string) []string {
+	// Skip vendor directory
+	if strings.Contains(filePath, "vendor/") {
+		fmt.Println("Skipping vendor file:", filePath)
+		return nil
+	}
 	src, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("Error reading file: %v", err)
