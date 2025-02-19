@@ -69,9 +69,9 @@ func extractFunctions(filePath string, functionNames []string) (map[string]strin
 			return true
 		})
 	}
-	if len(functions) == 0 {
-		return nil, fmt.Errorf("no functions found in %s", filePath)
-	}
+	// if len(functions) == 0 {
+	// 	return nil, fmt.Errorf("no functions found in %s", filePath)
+	// }
 
 	return functions, nil
 }
