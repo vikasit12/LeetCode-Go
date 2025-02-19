@@ -87,7 +87,6 @@ jobs:
             fi
             done < changed_files.txt
 
-
       - name: Commit and Push New Tests
         run: |
           git config --global user.name "github-actions"
@@ -99,12 +98,3 @@ jobs:
             git commit -m "Auto-generated missing tests using GPT-4"
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
-          done
-
-      - name: Commit and Push New Tests
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add .
-          git commit -m "Auto-generated missing tests using GPT-4"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
