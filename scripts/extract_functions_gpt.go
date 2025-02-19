@@ -139,7 +139,7 @@ func generateTests(client *openai.Client, functions map[string]string) string {
 			break
 		}
 		fmt.Printf("🚀 Generating test for function: %s\n", name)
-
+		log.Printf("abhi:---func name:%v,code : %+v", name, code)
 		// Construct prompt
 		prompt := fmt.Sprintf(`Write a Golang unit test using "testing" package for the following function:
 %s
