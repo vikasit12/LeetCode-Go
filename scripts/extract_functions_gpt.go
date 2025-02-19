@@ -162,7 +162,7 @@ Return only the Go code inside a code block. Use a table-driven test format.`, c
 		generatedTests = append(generatedTests, resp.Choices[0].Message.Content)
 		count++
 	}
-
+	log.Printf("generated tests: %v",generatedTests)
 	return strings.Join(generatedTests, "\n\n")
 }
 func main() {
