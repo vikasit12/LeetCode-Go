@@ -87,7 +87,6 @@ jobs:
             fi
             done < changed_files.txt
 
-
       - name: Commit and Push New Tests
         run: |
           git config --global user.name "github-actions"
